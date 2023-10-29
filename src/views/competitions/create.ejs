@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Competition Web App | Create Competition</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Competition Form</h1>
+            <form method="POST" action="/competitions/create">
+                <div class="box">
+                    <h2>Competition</h2>
+                    <div class="form-group">
+                        <label for="competitionName">Competition Name</label>
+                        <input type="text" class="form-control" id="competitionName" name="competitionName" maxlength="64" required>
+                    </div>
+                </div>
+
+                <div class="box">
+                    <h2>Competitors</h2>
+                    <div class="form-group">
+                        <label for="competitor1">Competitor 1</label>
+                        <input type="text" class="form-control" id="competitor1" name="competitor1" maxlength="64" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="competitor2">Competitor 2</label>
+                        <input type="text" class="form-control" id="competitor2" name="competitor2" maxlength="64" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="competitor3">Competitor 3</label>
+                        <input type="text" class="form-control" id="competitor3" name="competitor3" maxlength="64" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="competitor4">Competitor 4</label>
+                        <input type="text" class="form-control" id="competitor4" name="competitor4">
+                    </div>
+                    <button type="button" class="btn btn-primary" id="addCompetitor">Add Competitor</button>
+                </div>
+
+                <div class="box">
+                    <h2>Points System</h2>
+                    <div class="form-group">
+                        <label for="winPoints">Points for Win</label>
+                        <input type="number" class="form-control" id="winPoints" name="winPoints" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lostPoints">Points for Lost</label>
+                        <input type="number" class="form-control" id="lostPoints" name="lostPoints" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="drawPoints">Points for Draw</label>
+                        <input type="number" class="form-control" id="drawPoints" name="drawPoints" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+
+        <script>
+            $(document).ready(function () {
+                var maxCompetitors = 8; // Maximum number of competitors
+                var currentCompetitors = 4; // Initial number of competitors
+
+                $("#addCompetitor").click(function () {
+                    if (currentCompetitors < maxCompetitors) {
+                        for (i = 0; i < 2; i++) {       // We want even number of competitors
+                            var newCompetitorNumber = currentCompetitors + 1;
+                            var newInputField = '<div class="form-group">';
+                            newInputField += '<label for="competitor' + newCompetitorNumber + '">Competitor ' + newCompetitorNumber + '</label>';
+                            newInputField += '<input type="text" class="form-control" id="competitor' + newCompetitorNumber + '" name="competitor' + newCompetitorNumber + '" maxlength="64" required>';
+                            newInputField += '</div>';
+                            $("#addCompetitor").before(newInputField);
+                            currentCompetitors += 1;
+
+                            if (currentCompetitors === maxCompetitors) {
+                                // Disable button if there are 8 competitors
+                                $("#addCompetitor").prop("disabled", true);
+                            }
+                        }
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>

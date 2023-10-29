@@ -4,9 +4,9 @@
   "description": "Web application that will provide competition management. Authenticated users will be able to create a new competition, select the number of competitors, define a points structure and update results. Application will use OAuth2 for user authentification.",
   "main": "./src/app.ts",
   "scripts": {
-    "build": "npm run clean && tsc && npm run copy-views && npm run copy-views",
-    "clean": "shx rm -rf dist",
-    "copy-views": "shx cp -r src/views/ dist",
+    "build": "npm run clean; tsc; npm run copy-views; npm run copy-views",
+    "clean": "rm -rf dist",
+    "copy-views": "cp -r src/views/ dist/views/",
     "start": "node dist/app.js"
   },
   "repository": {

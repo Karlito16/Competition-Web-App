@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Competition Web App | Home</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <style>
+            .competition-row {
+                background-color: #e6f7ff;
+                margin-bottom: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Your competitions</h1>
+            <% if (username) { %>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Competition Name</th>
+                            <th>Number of Competitors</th>
+                            <th>Points System (W|L|D)</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% competitions.forEach((competition) => { %>
+                            <tr class="competition-row">
+                                <td><%= competition.name %></td>
+                                <td><%= competition.num_competitors %></td>
+                                <td><%= competition.win %>|<%= competition.lost %>|<%= competition.draw %></td>
+                                <td>
+                                    <a class="btn btn-info" href="/competitions/<%= competition.id %>">Expand</a>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <div class="alert alert-info" role="alert">
+                    Login or Sign-Up in order to create a new competition.
+                </div>
+            <% } %>
+        </div>
+    </body>
+</html>

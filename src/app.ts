@@ -2,16 +2,15 @@
 
 import dotenv from 'dotenv';
 import express from 'express';
-import fs from 'fs';
+import bodyParser from 'body-parser';
 import https from 'https';
 import path from 'path';
-import { auth, requiresAuth } from 'express-openid-connect';
+import { auth } from 'express-openid-connect';
+import {router as homeRouter } from './routes/home.router';
+import {router as authRouter } from './routes/auth.router';
+import {router as competitionRouter } from './routes/competition.router';
 
 dotenv.config()
-
-const app = express();
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
 
 // Configure port, host and url
 const externalUrl = process.env.RENDER_EXTERNAL_URL;
@@ -32,30 +31,21 @@ const config = {
     },
 };
 
+const app = express();
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
 // auth router attaches /login, /logout, and /callback routes to the baseURL
 app.use(auth(config));
 
-app.get('/',  function (req, res) {
-    let username : string | undefined;
-    if (req.oidc.isAuthenticated()) {
-        username = req.oidc.user?.name ?? req.oidc.user?.sub;
-    }
-    res.render('index', {username});
-});
-  
-app.get('/private', requiresAuth(), function (req, res) {       
-    const user = JSON.stringify(req.oidc.user);      
-    res.render('private', {user}); 
-});
+// body parser
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
-app.get("/sign-up", (req, res) => {
-    res.oidc.login({
-        returnTo: '/',
-        authorizationParams: {      
-            screen_hint: "signup",
-        },
-    });
-});
+// configure routers
+app.use('/', homeRouter);
+app.use('/auth', authRouter);
+app.use('/competitions', competitionRouter);
 
 // Code from: https://dop3ch3f.medium.com/working-with-ssl-as-env-variables-in-node-js-bonus-connecting-mysql-with-ssl-2bd49508fe14
 // Added @ts-nocheck because of this part of the code

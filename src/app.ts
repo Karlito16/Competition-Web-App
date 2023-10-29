@@ -13,9 +13,11 @@ const app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-const port = process.env.CWA_PORT;
+// Configure port, host and url
+const externalUrl = process.env.RENDER_EXTERNAL_URL;
+const port = externalUrl && process.env.PORT ? parseInt(process.env.PORT) : parseInt(process.env.CWA_PORT);
 const host = process.env.CWA_HOST;
-const baseUrl = `${process.env.CWA_HOST}:${port}`;
+const baseUrl = externalUrl || `${host}:${port}`;
 
 const config = {
     authRequired: false,
@@ -57,9 +59,18 @@ app.get("/sign-up", (req, res) => {
 
 // Code from: https://dop3ch3f.medium.com/working-with-ssl-as-env-variables-in-node-js-bonus-connecting-mysql-with-ssl-2bd49508fe14
 // Added @ts-nocheck because of this part of the code
-https.createServer({
-    key: Buffer.from(process.env.CWA_SERVER_KEY, "base64").toString("ascii"),
-    cert: Buffer.from(process.env.CWA_SERVER_CERT, "base64").toString("ascii")
-}, app).listen(port, function () {
-    console.log(`Server running at ${baseUrl}/`);
-});
+if (externalUrl) {
+    const hostname = '0.0.0.0';
+    app.listen(port, hostname, () => {
+        console.log(`Server locally running at http://${hostname}:${port}/ and from
+        outside on ${externalUrl}`);
+    });
+}
+else {
+    https.createServer({
+        key: Buffer.from(process.env.CWA_SERVER_KEY, "base64").toString("ascii"),
+        cert: Buffer.from(process.env.CWA_SERVER_CERT, "base64").toString("ascii")
+    }, app).listen(port, function () {
+        console.log(`Server running at ${baseUrl}/`);
+    });
+}

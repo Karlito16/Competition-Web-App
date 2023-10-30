@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Competition Web App | Edit Result</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <style>
+            .competition-row {
+                background-color: #e6f7ff;
+                margin-bottom: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <%- include('../navbar') %>
+
+        <div class="container">
+            <h1>Edit Result</h1>
+            <h3>Round <%= round %></h3>
+            <form method="POST" action="/competitions/<%= competitionId %>/edit">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Competitor 1</th>
+                            <th>Competitor 2</th>
+                            <th>Score 1</th>
+                            <th>Score 2</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="competition-row">
+                            <td><%= competitor1 %></td>
+                            <td><%= competitor2 %></td>
+                            <td>
+                                <input type="number" class="form-control" id="score1" name="score1" value="<%= score1 ?? '' %>">
+                            </td>
+                            <td>
+                                <input type="number" class="form-control" id="score2" name="score2" value="<%= score2 ?? '' %>">
+                            </td>
+                            <td>
+                                <button type="submit" class="btn btn-primary">Save</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <input type="number" id="score1Id" name="score1Id" value="<%= score1Id %>" hidden>
+                <input type="number" id="score2Id" name="score2Id" value="<%= score2Id %>" hidden>
+                <input type="number" id="round" name="round" value="<%= round %>" hidden>
+                <input id="competitor1" name="competitor1" value="<%= competitor1 %>" hidden>
+                <input id="competitor2" name="competitor2" value="<%= competitor2 %>" hidden>
+                <span>
+                    <a class="btn btn-warning mb-2 mx-2" href="/competitions/<%= competitionId %>">Back to Competition View</a>
+                </span>
+                <% if (warning) { %>
+                    <div class="alert alert-warning" role="alert">
+                        <%= warning %>
+                    </div>
+                <% } %>
+            </form>
+        </div>
+    </body>
+</html>

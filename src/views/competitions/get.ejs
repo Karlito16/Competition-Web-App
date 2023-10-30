@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Competition Web App | View Competition</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <style>
+            .competition-row {
+                background-color: #e6f7ff;
+                margin-bottom: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <%- include('../navbar') %>
+
+        <div class="container">
+            <h1>View Competition</h1>
+            <% rounds.forEach((round) => { %>
+                <h3>Round <%= round.round %></h3>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Competitor 1</th>
+                            <th>Competitor 2</th>
+                            <th>Score 1</th>
+                            <th>Score 2</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% round.matches.forEach((match) => { %>
+                            <tr class="competition-row">
+                                <td><%= match.competitor1 %></td>
+                                <td><%= match.competitor2 %></td>
+                                <td><%= match.score1 ?? 'Unknown' %></td>
+                                <td><%= match.score2 ?? 'Unknown' %></td>
+                                <td>
+                                    <a 
+                                        class="btn btn-primary"
+                                        href="/competitions/<%= competitionId %>/edit?round=<%= round.round %>&competitor1=<%= match.competitor1 %>&competitor2=<%= match.competitor2%>&score1Id=<%= match.score1Id %>&score1=<%= match.score1 %>&score2Id=<%= match.score2Id %>&score2=<%= match.score2 %>">Edit Result
+                                    </a>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% }); %>
+        </div>
+        <div class="container">
+            <h1>Leaderboard</h1>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Position</th>
+                        <th>Competitor</th>
+                        <th>Total Points</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% let position = 1; %>
+                    <% leaderboard.forEach((row) => { %>
+                        <tr class="competition-row">
+                            <td><%= position++ %></td>
+                            <td><%= row["name"] %></td>
+                            <td><%= row["total_score"] %></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+            <a class="btn btn-warning mb-2" href="/">Back to Home Page</a>
+        </div>
+    </body>
+</html>

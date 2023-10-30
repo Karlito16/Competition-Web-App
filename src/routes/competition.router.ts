@@ -3,6 +3,7 @@ import { requiresAuth } from 'express-openid-connect';
 import { pool } from '../db/db';
 import { PoolClient, QueryResult } from 'pg';
 import { Round, Match, generateSchedule } from '../utils';
+import { ParsedUrlQuery } from 'querystring';
 
 export const router: express.Router = express.Router(); 
 
@@ -122,4 +123,56 @@ router.post('/create', requiresAuth(), async (req, res) => {
         console.debug("Connection released!");
         res.render('home', {username: req.oidc.user?.username});
     }
+});
+
+router.get('/:id', requiresAuth(), async (req, res) => {
+    const competitionId: string = req.params.id;
+    const query: string = 'SELECT rounds.round_number, competitors1.name AS competitor1, competitors2.name AS competitor2, scores1.score AS score1, scores2.score AS score2, scores1.id AS score1id, scores2.id AS scores2id ' +
+	                    'FROM rounds JOIN competitions ON rounds.competition_id = competitions.id AND competitions.id = $1 JOIN users ON users.TOKEN = $2 JOIN matches ON matches.round_id = rounds.id ' +
+	                    'JOIN scores AS scores1 ON matches.score_1_id = scores1.id JOIN scores AS scores2 ON matches.score_2_id = scores2.id JOIN competitors AS competitors1 ' +
+	                    'ON scores1.competitor_id = competitors1.id JOIN competitors AS competitors2 ON scores2.competitor_id = competitors2.id ' +
+	                    'ORDER BY rounds.round_number, scores1.score, scores2.score;';
+    const queryArgs: string[] = [competitionId, req.oidc.user?.sub];
+    const results: QueryResult = await pool.query(query, queryArgs);
+
+    const rounds: {round: number, matches: {competitor1: string, competitor2: string, score1: string, score2: string, score1Id: string, score2Id: string}[]}[] = [];
+    for (const row of results.rows) {
+        const roundNumber: number = Number.parseInt(row["round_number"]);
+        if (!rounds[roundNumber - 1]) rounds[roundNumber - 1] = {round: roundNumber, matches: []};
+        rounds[roundNumber - 1].matches.push({
+            competitor1: row["competitor1"],
+            competitor2: row["competitor2"],
+            score1: row["score1"],
+            score2: row["score2"],
+            score1Id: row["score1id"],
+            score2Id: row["score2id"],
+        });
+    }
+
+    res.render('competitions/get', {
+        competitionId: competitionId,
+        rounds: rounds
+    });
+});
+
+router.get('/:id/edit', requiresAuth(), async (req, res) => {
+    const competitionId = req.params.id;
+    const round = req.query.round;
+    const competitor1 = req.query.competitor1;
+    const competitor2 = req.query.competitor2;
+    const score1 = req.query.score1;
+    const score2 = req.query.score2;
+    const score1Id = req.query.score1Id;
+    const score2Id = req.query.score2Id;
+
+    res.render('competitions/edit', {
+        competitionId: competitionId,
+        round: round,
+        competitor1: competitor1, 
+        competitor2: competitor2,
+        score1: score1,
+        score2: score2,
+        score1Id: score1Id,
+        score2Id: score2Id
+    });
 });

@@ -10,10 +10,9 @@
     </head>
     <body>
         <div class="container">
-            <h1>Competition Form</h1>
+            <h1>Create a New Competition</h1>
             <form method="POST" action="/competitions/create">
                 <div class="box">
-                    <h2>Competition</h2>
                     <div class="form-group">
                         <label for="competitionName">Competition Name</label>
                         <input type="text" class="form-control" id="competitionName" name="competitionName" maxlength="64" required>
@@ -42,7 +41,7 @@
                 </div>
 
                 <div class="box">
-                    <h2>Points System</h2>
+                    <h2 class="mt-2">Points System</h2>
                     <div class="form-group">
                         <label for="winPoints">Points for Win</label>
                         <input type="number" class="form-control" id="winPoints" name="winPoints" required>
@@ -57,7 +56,10 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <span>
+                    <button type="submit" class="btn btn-primary mb-2">Submit</button>
+                    <a class="btn btn-warning mb-2 mx-2" href="/ %>">Back to Home Page</a>
+                </span>
             </form>
         </div>
 

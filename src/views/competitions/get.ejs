@@ -46,7 +46,29 @@
                     </tbody>
                 </table>
             <% }); %>
-            <a class="btn btn-warning" href="/">Back to Home Page</a>
+        </div>
+        <div class="container">
+            <h1>Leaderboard</h1>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Position</th>
+                        <th>Competitor</th>
+                        <th>Total Points</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% let position = 1; %>
+                    <% leaderboard.forEach((row) => { %>
+                        <tr class="competition-row">
+                            <td><%= position++ %></td>
+                            <td><%= row["name"] %></td>
+                            <td><%= row["total_score"] %></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+            <a class="btn btn-warning mb-2" href="/">Back to Home Page</a>
         </div>
     </body>
 </html>

@@ -127,13 +127,13 @@ router.post('/create', requiresAuth(), async (req, res) => {
 
 router.get('/:id', requiresAuth(), async (req, res) => {
     const competitionId: string = req.params.id;
-    const query: string = 'SELECT rounds.round_number, competitors1.name AS competitor1, competitors2.name AS competitor2, scores1.score AS score1, scores2.score AS score2, scores1.id AS score1id, scores2.id AS scores2id ' +
+    let query: string = 'SELECT rounds.round_number, competitors1.name AS competitor1, competitors2.name AS competitor2, scores1.score AS score1, scores2.score AS score2, scores1.id AS score1id, scores2.id AS score2id ' +
 	                    'FROM rounds JOIN competitions ON rounds.competition_id = competitions.id AND competitions.id = $1 JOIN users ON users.TOKEN = $2 JOIN matches ON matches.round_id = rounds.id ' +
 	                    'JOIN scores AS scores1 ON matches.score_1_id = scores1.id JOIN scores AS scores2 ON matches.score_2_id = scores2.id JOIN competitors AS competitors1 ' +
 	                    'ON scores1.competitor_id = competitors1.id JOIN competitors AS competitors2 ON scores2.competitor_id = competitors2.id ' +
 	                    'ORDER BY rounds.round_number, scores1.score, scores2.score;';
-    const queryArgs: string[] = [competitionId, req.oidc.user?.sub];
-    const results: QueryResult = await pool.query(query, queryArgs);
+    let queryArgs: string[] = [competitionId, req.oidc.user?.sub];
+    let results: QueryResult = await pool.query(query, queryArgs);
 
     const rounds: {round: number, matches: {competitor1: string, competitor2: string, score1: string, score2: string, score1Id: string, score2Id: string}[]}[] = [];
     for (const row of results.rows) {
@@ -149,9 +149,17 @@ router.get('/:id', requiresAuth(), async (req, res) => {
         });
     }
 
+    // Get Leaderboard
+    query = 'SELECT competitors.name, SUM(scores.score) AS total_score FROM competitors JOIN scores ON competitors.id = scores.competitor_id ' +
+	        'WHERE competitors.id IN (SELECT DISTINCT scores.competitor_id FROM competitions JOIN users ON users.TOKEN = $1 JOIN rounds ON rounds.competition_id = competitions.id JOIN matches ' +
+			'ON matches.round_id = rounds.id JOIN scores ON matches.score_1_id = scores.id WHERE competitions.id = $2) AND scores.score IS NOT NULL GROUP BY competitors.name ORDER BY total_score DESC;'
+    queryArgs = [req.oidc.user?.sub, competitionId];
+    results = await pool.query(query, queryArgs);
+
     res.render('competitions/get', {
         competitionId: competitionId,
-        rounds: rounds
+        rounds: rounds,
+        leaderboard: results.rows
     });
 });
 
@@ -173,6 +181,47 @@ router.get('/:id/edit', requiresAuth(), async (req, res) => {
         score1: score1,
         score2: score2,
         score1Id: score1Id,
-        score2Id: score2Id
+        score2Id: score2Id,
+        warning: undefined
     });
+});
+
+router.post('/:id/edit', requiresAuth(), async (req, res) => {
+    const competitionId = req.params.id;
+    const round = req.body.round;
+    const competitor1 = req.body.competitor1;
+    const competitor2 = req.body.competitor2;
+    const score1 = req.body.score1;
+    const score2 = req.body.score2;
+    const score1Id = req.body.score1Id;
+    const score2Id = req.body.score2Id;
+
+    const score1Defined = score1 !== "";
+    const score2Defined = score2 !== "";
+    if ((!score1Defined && !score2Defined) || (score1Defined && score2Defined)) {
+        // Insert score 1
+        let query: string = 'UPDATE scores SET score = $1 WHERE id = $2;';
+        let queryArgs: string[] = [score1Defined ? score1 : null, score1Id];
+        let results: QueryResult = await pool.query(query, queryArgs);
+        console.debug("Updated score with id: " + score1Id);
+
+        // Insert score 2
+        queryArgs = [score2Defined ? score2 : null, score2Id];
+        results = await pool.query(query, queryArgs);
+        console.debug("Updated score with id: " + score2Id);
+
+        res.redirect('/competitions/' + competitionId);
+    } else {
+        res.render('competitions/edit', {
+            competitionId: competitionId,
+            round: round,
+            competitor1: competitor1, 
+            competitor2: competitor2,
+            score1: score1,
+            score2: score2,
+            score1Id: score1Id,
+            score2Id: score2Id,
+            warning: "You can either set both values to be a valid number or leave both empty."
+        });
+    }
 });

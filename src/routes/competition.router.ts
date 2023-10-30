@@ -151,9 +151,9 @@ router.get('/:id', async (req, res) => {
 
     // Get Leaderboard
     query = 'SELECT competitors.name, SUM(scores.score) AS total_score FROM competitors JOIN scores ON competitors.id = scores.competitor_id ' +
-	        'WHERE competitors.id IN (SELECT DISTINCT scores.competitor_id FROM competitions JOIN users ON competitions.user_id = (SELECT id FROM users WHERE TOKEN = $1) JOIN rounds ON rounds.competition_id = competitions.id JOIN matches ' +
-			'ON matches.round_id = rounds.id JOIN scores ON matches.score_1_id = scores.id WHERE competitions.id = $2) AND scores.score IS NOT NULL GROUP BY competitors.name ORDER BY total_score DESC;'
-    queryArgs = [req.oidc.user?.sub, competitionId];
+	        'WHERE competitors.id IN (SELECT DISTINCT scores.competitor_id FROM competitions JOIN rounds ON rounds.competition_id = competitions.id JOIN matches ' +
+			'ON matches.round_id = rounds.id JOIN scores ON matches.score_1_id = scores.id WHERE competitions.id = $1) AND scores.score IS NOT NULL GROUP BY competitors.name ORDER BY total_score DESC;'
+    queryArgs = [competitionId];
     results = await pool.query(query, queryArgs);
 
     let isOwner: Boolean = false;

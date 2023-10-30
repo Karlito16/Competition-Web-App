@@ -8,7 +8,7 @@ import { ParsedUrlQuery } from 'querystring';
 export const router: express.Router = express.Router(); 
 
 router.get('/create', requiresAuth(), (req, res) => {
-    res.render('competitions/create', {});
+    res.render('competitions/create', {username: req.oidc.user?.name});
 });
 
 router.post('/create', requiresAuth(), async (req, res) => {
@@ -128,11 +128,11 @@ router.post('/create', requiresAuth(), async (req, res) => {
 router.get('/:id', requiresAuth(), async (req, res) => {
     const competitionId: string = req.params.id;
     let query: string = 'SELECT rounds.round_number, competitors1.name AS competitor1, competitors2.name AS competitor2, scores1.score AS score1, scores2.score AS score2, scores1.id AS score1id, scores2.id AS score2id ' +
-	                    'FROM rounds JOIN competitions ON rounds.competition_id = competitions.id AND competitions.id = $1 JOIN users ON users.TOKEN = $2 JOIN matches ON matches.round_id = rounds.id ' +
+	                    'FROM rounds JOIN competitions ON rounds.competition_id = competitions.id AND competitions.id = $1 JOIN matches ON matches.round_id = rounds.id ' +
 	                    'JOIN scores AS scores1 ON matches.score_1_id = scores1.id JOIN scores AS scores2 ON matches.score_2_id = scores2.id JOIN competitors AS competitors1 ' +
 	                    'ON scores1.competitor_id = competitors1.id JOIN competitors AS competitors2 ON scores2.competitor_id = competitors2.id ' +
-	                    'ORDER BY rounds.round_number, scores1.score, scores2.score;';
-    let queryArgs: string[] = [competitionId, req.oidc.user?.sub];
+	                    'ORDER BY rounds.round_number, matches.id;';
+    let queryArgs: string[] = [competitionId];
     let results: QueryResult = await pool.query(query, queryArgs);
 
     const rounds: {round: number, matches: {competitor1: string, competitor2: string, score1: string, score2: string, score1Id: string, score2Id: string}[]}[] = [];
@@ -151,13 +151,14 @@ router.get('/:id', requiresAuth(), async (req, res) => {
 
     // Get Leaderboard
     query = 'SELECT competitors.name, SUM(scores.score) AS total_score FROM competitors JOIN scores ON competitors.id = scores.competitor_id ' +
-	        'WHERE competitors.id IN (SELECT DISTINCT scores.competitor_id FROM competitions JOIN users ON users.TOKEN = $1 JOIN rounds ON rounds.competition_id = competitions.id JOIN matches ' +
+	        'WHERE competitors.id IN (SELECT DISTINCT scores.competitor_id FROM competitions JOIN users ON competitions.user_id = (SELECT id FROM users WHERE TOKEN = $1) JOIN rounds ON rounds.competition_id = competitions.id JOIN matches ' +
 			'ON matches.round_id = rounds.id JOIN scores ON matches.score_1_id = scores.id WHERE competitions.id = $2) AND scores.score IS NOT NULL GROUP BY competitors.name ORDER BY total_score DESC;'
     queryArgs = [req.oidc.user?.sub, competitionId];
     results = await pool.query(query, queryArgs);
 
     res.render('competitions/get', {
         competitionId: competitionId,
+        username: req.oidc.user?.name,
         rounds: rounds,
         leaderboard: results.rows
     });
@@ -175,6 +176,7 @@ router.get('/:id/edit', requiresAuth(), async (req, res) => {
 
     res.render('competitions/edit', {
         competitionId: competitionId,
+        username: req.oidc.user?.name,
         round: round,
         competitor1: competitor1, 
         competitor2: competitor2,
@@ -214,6 +216,7 @@ router.post('/:id/edit', requiresAuth(), async (req, res) => {
     } else {
         res.render('competitions/edit', {
             competitionId: competitionId,
+            username: req.oidc.user?.name,
             round: round,
             competitor1: competitor1, 
             competitor2: competitor2,

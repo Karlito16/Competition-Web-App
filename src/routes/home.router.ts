@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
         // Get competition list
         const token: string = req.oidc.user?.sub;
         const query: string = 'SELECT competitions.id, competitions.name, points_systems.win, points_systems.lost, points_systems.draw, COUNT(*) + 1 AS num_competitors ' +
-                                'FROM competitions JOIN rounds ON competitions.id = rounds.competition_id JOIN users ON users.token = $1 JOIN points_systems ON competitions.points_system_id = points_systems.id ' +
+                                'FROM competitions JOIN rounds ON competitions.id = rounds.competition_id JOIN users ON competitions.user_id = (SELECT id FROM users WHERE TOKEN = $1) JOIN points_systems ON competitions.points_system_id = points_systems.id ' +
                                 'GROUP BY competitions.id, competitions.name, points_systems.win, points_systems.lost, points_systems.draw;';
         const queryArgs: string[] = [token];                                
         const results = await pool.query(query, queryArgs);

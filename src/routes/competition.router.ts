@@ -156,16 +156,19 @@ router.get('/:id', async (req, res) => {
     queryArgs = [req.oidc.user?.sub, competitionId];
     results = await pool.query(query, queryArgs);
 
-    // Check owner
-    query = 'SELECT id FROM users WHERE token = $1;';
-    queryArgs = [req.oidc.user?.sub ?? ''];
-    results = await pool.query(query, queryArgs);
-    const userId: string = results.rows[0]["id"];
+    let isOwner: Boolean = false;
+    if (req.oidc.isAuthenticated()) {
+        // Check owner
+        query = 'SELECT id FROM users WHERE token = $1;';
+        queryArgs = [req.oidc.user?.sub ?? ''];
+        results = await pool.query(query, queryArgs);
+        const userId: string = results.rows[0]["id"];
 
-    query = 'SELECT competitions.id FROM competitions JOIN users ON competitions.user_id = users.id WHERE users.id = $1;';
-    queryArgs = [userId];
-    results = await pool.query(query, queryArgs);
-    const isOwner: Boolean = results.rows.map(x => x.id).includes(Number.parseInt(competitionId));
+        query = 'SELECT competitions.id FROM competitions JOIN users ON competitions.user_id = users.id WHERE users.id = $1;';
+        queryArgs = [userId];
+        results = await pool.query(query, queryArgs);
+        isOwner = results.rows.map(x => x.id).includes(Number.parseInt(competitionId));
+    }
 
     res.render('competitions/get', {
         competitionId: competitionId,

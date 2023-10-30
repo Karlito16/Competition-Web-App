@@ -27,7 +27,9 @@
                             <th>Competitor 2</th>
                             <th>Score 1</th>
                             <th>Score 2</th>
-                            <th>Actions</th>
+                            <% if (isOwner) { %>
+                                <th>Actions</th>
+                            <% } %>
                         </tr>
                     </thead>
                     <tbody>
@@ -37,12 +39,14 @@
                                 <td><%= match.competitor2 %></td>
                                 <td><%= match.score1 ?? 'Unknown' %></td>
                                 <td><%= match.score2 ?? 'Unknown' %></td>
-                                <td>
-                                    <a 
-                                        class="btn btn-primary"
-                                        href="/competitions/<%= competitionId %>/edit?round=<%= round.round %>&competitor1=<%= match.competitor1 %>&competitor2=<%= match.competitor2%>&score1Id=<%= match.score1Id %>&score1=<%= match.score1 %>&score2Id=<%= match.score2Id %>&score2=<%= match.score2 %>">Edit Result
-                                    </a>
-                                </td>
+                                <% if (isOwner) { %>
+                                    <td>
+                                        <a 
+                                            class="btn btn-primary"
+                                            href="/competitions/<%= competitionId %>/edit?round=<%= round.round %>&competitor1=<%= match.competitor1 %>&competitor2=<%= match.competitor2%>&score1Id=<%= match.score1Id %>&score1=<%= match.score1 %>&score2Id=<%= match.score2Id %>&score2=<%= match.score2 %>">Edit Result
+                                        </a>
+                                    </td>
+                                <% } %>
                             </tr>
                         <% }); %>
                     </tbody>

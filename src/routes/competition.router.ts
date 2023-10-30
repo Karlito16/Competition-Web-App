@@ -125,7 +125,7 @@ router.post('/create', requiresAuth(), async (req, res) => {
     }
 });
 
-router.get('/:id', requiresAuth(), async (req, res) => {
+router.get('/:id', async (req, res) => {
     const competitionId: string = req.params.id;
     let query: string = 'SELECT rounds.round_number, competitors1.name AS competitor1, competitors2.name AS competitor2, scores1.score AS score1, scores2.score AS score2, scores1.id AS score1id, scores2.id AS score2id ' +
 	                    'FROM rounds JOIN competitions ON rounds.competition_id = competitions.id AND competitions.id = $1 JOIN matches ON matches.round_id = rounds.id ' +
@@ -156,9 +156,21 @@ router.get('/:id', requiresAuth(), async (req, res) => {
     queryArgs = [req.oidc.user?.sub, competitionId];
     results = await pool.query(query, queryArgs);
 
+    // Check owner
+    query = 'SELECT id FROM users WHERE token = $1;';
+    queryArgs = [req.oidc.user?.sub ?? ''];
+    results = await pool.query(query, queryArgs);
+    const userId: string = results.rows[0]["id"];
+
+    query = 'SELECT competitions.id FROM competitions JOIN users ON competitions.user_id = users.id WHERE users.id = $1;';
+    queryArgs = [userId];
+    results = await pool.query(query, queryArgs);
+    const isOwner: Boolean = results.rows.map(x => x.id).includes(Number.parseInt(competitionId));
+
     res.render('competitions/get', {
         competitionId: competitionId,
         username: req.oidc.user?.name,
+        isOwner: isOwner,
         rounds: rounds,
         leaderboard: results.rows
     });
